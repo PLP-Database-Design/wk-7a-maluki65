@@ -1,28 +1,37 @@
--- On creating Orders table
-CREATE TABLE Orders (
-    OrderID INT PRIMARY KEY,
-    CustomerName VARCHAR(100)
-);
 
--- On insert into Orders table
-INSERT INTO Orders (OrderID, CustomerName) VALUES
-(101, 'John Doe'),
-(102, 'Jane Smith'),
-(103, 'Emily Clark');
+-- Question 1: On achieving 1NF
 
--- On creating OrderItems table
-CREATE TABLE OrderItems (
-    OrderID INT,
-    Product VARCHAR(100),
-    Quantity INT,
-    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
-);
+WITH ProductDetail AS (
+    SELECT 101 AS OrderID, 'John Doe' AS CustomerName, 'Laptop, Mouse' AS Products
+    UNION ALL
+    SELECT 102, 'Jane Smith', 'Tablet, Keyboard, Mouse'
+    UNION ALL
+    SELECT 103, 'Emily Clark', 'Phone'
+),
+SplitProducts AS (
+    SELECT
+        OrderID,
+        CustomerName,
+        TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(Products, ',', numbers.n), ',', -1)) AS Product
+    FROM
+        ProductDetail
+    JOIN (
+        SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+    ) numbers
+    ON CHAR_LENGTH(Products) - CHAR_LENGTH(REPLACE(Products, ',', '')) >= numbers.n - 1
+)
+SELECT * FROM SplitProducts;
 
--- On inserting into OrderItems table
-INSERT INTO OrderItems (OrderID, Product, Quantity) VALUES
-(101, 'Laptop', 2),
-(101, 'Mouse', 1),
-(102, 'Tablet', 3),
-(102, 'Keyboard', 1),
-(102, 'Mouse', 2),
-(103, 'Phone', 1);
+-- Question 2: On achieving 2NF 
+SELECT DISTINCT
+    OrderID,
+    CustomerName
+FROM
+    OrderDetails;
+
+SELECT
+    OrderID,
+    Product,
+    Quantity
+FROM
+    OrderDetails;
